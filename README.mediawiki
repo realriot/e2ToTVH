@@ -1,0 +1,11 @@
+This script will save an enigma2 configuration into a TV-Headend configuration.
+You can use this script with the following syntax:
+
+ ./e2ToTVH.py -i <enigma2 source directory> -o <tv-headend configuration directory>
+
+You can show additional help by using the '''-h''' switch.
+
+=== My last words ===
+Have fun with this little goodie...
+
+''Sascha Schmidt''

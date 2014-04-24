@@ -5,6 +5,11 @@ You can use this script with the following syntax:
 
 You can show additional help by using the '''-h''' switch.
 
+This script will '''not''' overwrite any existing configuration. You have to move the TV-Headend subdirectories:
+ channel/
+ channeltags/
+to a different (backup) location. The script will stop if an existing configuration is detected.
+
 === Notes ===
 * Please make sure that you use a new enigma2 release which uses lamedb in version 4.
 * This script will produce output which works fine with the latest git release of TV-Headend. The stable release is '''not''' supported.

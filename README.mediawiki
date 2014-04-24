@@ -5,6 +5,10 @@ You can use this script with the following syntax:
 
 You can show additional help by using the '''-h''' switch.
 
+=== Notes ===
+* Please make sure that you use a new enigma2 release which uses lamedb in version 4.
+* This script will produce output which works fine with the latest git release of TV-Headend. The stable release is '''not''' supported.
+
 === My last words ===
 Have fun with this little goodie...
 

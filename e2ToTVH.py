@@ -87,14 +87,17 @@ class lamedb:
           sref = "1:0:" + stype.upper() + ":" + hsid.upper() + ":" + htsid.upper() + \
             ":" + honid.upper() + ":" + namespace.upper() + ":0:0:0:" 
 
-          self.services[tmp[1]] = {'hsid'        : hsid,        # Service id (SSID value from stream) in Hex.
-                                   'namespace'   : namespace,   # DVB namespace in Hex.
-                                   'htsid'       : htsid,       # Transport stream id in Hex.
-                                   'honid'       : honid,       # Original network id in Hex.
-                                   'stype'       : stype,       # Service type.
-                                   'snumber'     : snumber,     # Service number in Decimal.
-                                   'transponder' : transponder, # Transponder.
-                                   'sref'        : sref}        # Service reference of bouquet file.
+          self.services[sref] = {'hsid'        : hsid,        # Service id (SSID value from stream) in Hex.
+                                 'namespace'   : namespace,   # DVB namespace in Hex.
+                                 'htsid'       : htsid,       # Transport stream id in Hex.
+                                 'honid'       : honid,       # Original network id in Hex.
+                                 'stype'       : stype,       # Service type.
+                                 'snumber'     : snumber,     # Service number in Decimal.
+                                 'transponder' : transponder, # Transponder.
+                                 'sname'       : tmp[1]}      # Service name.
+
+          if sref == "1:0:19:6E:D:85:C00000:0:0:0:":
+            print self.services[sref]
 
           # Split and parse provider data.
           provdata = []
@@ -102,24 +105,24 @@ class lamedb:
           for tmpdata in tmpprovdata:
             psdata = tmpdata.split(':')
             if psdata[0] == "p":
-              self.services[tmp[1]]['provider']= psdata[1]
+              self.services[sref]['provider']= psdata[1]
             else:
               data = {}
               # Strip leading 0 of hex fields.
               psdata[1] = re.sub("^0+","", psdata[1])
               data[psdata[0]] = psdata[1]
               provdata.append(data)
-          self.services[tmp[1]]['provider_data'] = provdata
+          self.services[sref]['provider_data'] = provdata
           tmp = []
         else:
           tmp.append(line)
 
   # Get channelname and servicedata by using a service reference key.
   def getServiceBySRef(self, sref):
-    for key in self.services:
-      if self.services[key]['sref'] == sref:
-        return [key, self.services[key]]
-    return None
+    try:
+      return self.services[sref]
+    except:
+      return None
 
 # Class handling the enigma2 bouquets and services.
 class e2bouquets:
@@ -298,15 +301,16 @@ class tvhstruct:
     # Write TV services.
     for service in self.e2bq.tv_services:
       i = i + 1
+      print "Looking up service: " + str(service[0])
       servicedata = self.lamedb.getServiceBySRef(service[0])
       if servicedata == None:
         print "  ServiceReference from bouquet not found in lamedb: " + service[0]
         continue
 
-      tvhkey = self.getServiceByName(servicedata[0], servicedata[1]['provider'])
+      tvhkey = self.getServiceByName(servicedata['sname'], servicedata['provider'])
       if tvhkey == None:
-        print "  Could not find service in TV-Headend service list: " + servicedata[0]
-        print "    Provider: " + servicedata[1]['provider']
+        print "  Could not find service in TV-Headend service list: " + servicedata['sname'] + " (" + \
+          servicedata['provider'] + ")"
         continue
 
       bqn = 1
@@ -314,7 +318,7 @@ class tvhstruct:
         if bq == service[1]:
           break;
         bqn = bqn + 1 
-      self.writeServiceFile(servicedata[1]['hsid'], i, tvhkey, bqn)
+      self.writeServiceFile(servicedata['hsid'], i, tvhkey, bqn)
 
     # Write RADIO services.
     for service in self.e2bq.radio_services:
@@ -324,10 +328,10 @@ class tvhstruct:
         print "ERROR: ServiceReference from bouquet not found in lamedb: " + service[0]
         continue
 
-      tvhkey = self.getServiceByName(servicedata[0], servicedata[1]['provider'])
+      tvhkey = self.getServiceByName(servicedata['sname'], servicedata['provider'])
       if tvhkey == None:
-        print "ERROR: Could not find service in TV-Headend service list: " + servicedata[0]
-        print "  Provider: " + servicedata[1]['provider']
+        print "  Could not find service in TV-Headend service list: " + servicedata['sname'] + " (" + \
+          servicedata['provider'] + ")"
         continue
 
       bqn = len(self.e2bq.tv_bouquets)+1
@@ -335,7 +339,7 @@ class tvhstruct:
         if bq == service[1]:
           break;
         bqn = bqn + 1
-      self.writeServiceFile(servicedata[1]['hsid'], i, tvhkey, bqn)
+      self.writeServiceFile(servicedata['hsid'], i, tvhkey, bqn)
 
   # Write a TV-Headend service file.
   def writeServiceFile(self, sid, channelnumber, tvhkey, tag):

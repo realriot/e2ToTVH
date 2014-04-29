@@ -96,9 +96,6 @@ class lamedb:
                                  'transponder' : transponder, # Transponder.
                                  'sname'       : tmp[1]}      # Service name.
 
-          if sref == "1:0:19:6E:D:85:C00000:0:0:0:":
-            print self.services[sref]
-
           # Split and parse provider data.
           provdata = []
           tmpprovdata = line.split(',')
@@ -301,7 +298,6 @@ class tvhstruct:
     # Write TV services.
     for service in self.e2bq.tv_services:
       i = i + 1
-      print "Looking up service: " + str(service[0])
       servicedata = self.lamedb.getServiceBySRef(service[0])
       if servicedata == None:
         print "  ServiceReference from bouquet not found in lamedb: " + service[0]

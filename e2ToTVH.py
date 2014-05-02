@@ -111,6 +111,7 @@ class lamedb:
               provdata.append(data)
           self.services[sref]['provider_data'] = provdata
           tmp = []
+          appLog('debug', 'Got lamedb entry: ' + str(self.services[sref]))
         else:
           tmp.append(line)
 
@@ -150,6 +151,7 @@ class e2bouquets:
     bqtype = ""
 
     try:
+      appLog('debug', 'Reading e2 bouquet file: ' + self.directory + "/" + filename)
       f = open(self.directory + "/" + filename)
       bqs = f.readlines()
       f.close()
@@ -190,16 +192,21 @@ class e2bouquets:
     # Add bouquet to list if service exists.
     if len(services) > 0:
       if bqtype == "TV":
+        appLog('debug', 'Found e2 TV bouquet: ' + bqname) 
         self.tv_bouquets.append(bqname)
         for service in services:
+          appLog('debug', 'Found e2 TV service: ' + str(service))
           self.tv_services.append([service, bqname])
       if bqtype == "Radio":
+        appLog('debug', 'Found e2 RADIO bouquet: ' + bqname)
         self.radio_bouquets.append(bqname)
         for service in services:
+          appLog('debug', 'Found e2 RADIO service: ' + str(service))
           self.radio_services.append([service, bqname])
 
     # Walk through other existing subbouquets.
     if len(subbouquets) > 0:
+      appLog('debug', 'Found ' + str(len(subbouquets)) + ' subbouquets')
       for sub in subbouquets:
         self.read_bqfile(sub)
 
@@ -247,6 +254,7 @@ class tvhstruct:
 
           if svcname != "" and provider != "":
             self.services[file] = [svcname, provider]
+            appLog('debug', 'Found TVH service: ' + file + ' (' + svcname + ' / ' + provider + ')')
 
   # Get a service from dictionary by using the name as key.
   def getServiceByName(self, svcname, provider):
@@ -272,6 +280,7 @@ class tvhstruct:
   # Write a TV-Headend bouquet file.
   def writeBouquetFile(self, number, name):
     print "Wrting bouquet file: " + name
+    appLog('debug', 'Bouquet name: ' + name)
     directory = self.directory + "/channeltags"
     try:
       f = open(directory + "/" + str(number), 'w')
@@ -344,6 +353,7 @@ class tvhstruct:
       m = hashlib.md5()
       m.update(sid)
       md5sid = m.hexdigest()
+      appLog('debug', 'Wring file for service: ' + md5sid)
       f = open(directory + "/" + str(md5sid), 'w')
       f.write('{\n')
       f.write('\t"number": ' + str(channelnumber) + ',\n')
@@ -361,16 +371,33 @@ class tvhstruct:
       print "ERROR: Could not write file: " + directory + "/" + str(md5sid)
       sys.exit(-1)
 
+# Log messages to stdout.
+def appLog(mode, text, reason = ""):
+  if mode.lower() == 'debug':
+    if debug == False:
+      return
+  msg = "[" + mode.upper() + "] " + text
+  if reason != "":
+    msg = msg + " (" + reason + ")"
+  print msg
+
 # Main entry for this script.
+debug = False
 def main(argv):
+  global debug
   inputdir = ""
   outputdir = ""
 
   parser = argparse.ArgumentParser(description = 'Enigma2 to TV-Headend channel and bouquet converter')
+  parser.add_argument('-d','--debug', help = 'Show debug output', action="store_true")
   parser.add_argument('-i','--input', help = 'Enigma2 input directory', required = True)
   parser.add_argument('-o','--output', help = 'TV-Headend configuration directory', required = True)
   args = parser.parse_args()
 
+  if args.debug == True:
+    debug = True
+
+  appLog('debug', 'Commandline options: ' + str(args))
   inputdir = args.input.rstrip('/')
   outputdir = args.output.rstrip('/')
 
@@ -380,6 +407,12 @@ def main(argv):
     sys.exit(-1)
   if not os.path.isdir(args.output):
     print "ERROR: TV-Headend destination directory does not exist"
+    sys.exit(-1)
+
+  # Check directory for tvh source services.
+  directory = outputdir + "/input/dvb/networks"
+  if not os.path.isdir(directory):
+    print "ERROR: Mandatory TV-Headend service directory does not exist"
     sys.exit(-1)
 
   # Check directory for channeltags.
@@ -409,14 +442,23 @@ def main(argv):
     sys.exit(-1)
 
   # Trigger main functions.
+  appLog('debug', 'Creating lamedb object which holds all service informations')
   ldb = lamedb(inputdir + '/lamedb')
+
+  appLog('debug', 'Creating e2 objects which holds all bouquet informations')
   e2bq = e2bouquets(inputdir)
+
+  appLog('debug', 'Creating TV-Headend objects which holds all already existing services')
   tvh = tvhstruct(outputdir, ldb, e2bq)
+
+  appLog('debug', 'Write found bouquets')
   tvh.writeBouquets()
+
+  appLog('debug', 'Write found services')
   tvh.writeServices()
+
+  appLog('debug', 'END OF CODE')
 
 # Main entry for script.
 if __name__ == "__main__":
   main(sys.argv[1:])
-
-

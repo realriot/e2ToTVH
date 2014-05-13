@@ -10,6 +10,15 @@ This script will '''not''' overwrite any existing configuration. You have to mov
  channeltags/
 to a different (backup) location. The script will stop if an existing configuration is detected.
 
+=== Donation ===
+Since I'm developing in my free time I'd like to ask you to support my work.
+You can do it by contributing 5 EUR via paypal. This will give me motivation
+to keep on coding and fixing bugs.
+
+Thanks in advance
+
+[https://www.paypal.com/cgi-bin/webscr?no_note=0&lc=US&business=realriot%40realriot.de&item_name=GitHub+-+e2ToTVH&cmd=_donations&currency_code=USD '''DONATE NOW VIA PAYPAL''']
+
 === Notes ===
 * Please make sure that you use a new enigma2 release which uses lamedb in version 4.
 * This script will produce output which works fine with the latest git release of TV-Headend. The stable release is '''not''' supported.
